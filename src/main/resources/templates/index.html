@@ -1,0 +1,202 @@
+<!DOCTYPE html SYSTEM 'about:legacy-compat'>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script
+	src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<script
+	src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"></script>
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css"
+	integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+	crossorigin="anonymous">
+<link rel="stylesheet"
+	href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap-theme.min.css"
+	integrity="sha384-rHyoN1iRsVXV4nD0JutlnGaslCJuC7uwjduW9SVrLvRYooPp2bWYgmgJQIXwl/Sp"
+	crossorigin="anonymous">
+<script
+	src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"
+	integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa"
+	crossorigin="anonymous"></script>
+<title>Home</title>
+<style>
+h1 {
+	color: green;
+}
+
+* {
+	box-sizing: border-box;
+}
+
+body {
+	font-family: Arial, Helvetica, sans-serif;
+}
+/* Float four columns side by side */
+.column {
+	float: left;
+	width: 25%;
+	padding: 0 10px;
+}
+/* Remove extra left and right margins, due to padding */
+.row {
+	margin: 0 -5px;
+}
+/* Clear floats after the columns */
+.row:after {
+	content: "";
+	display: table;
+	clear: both;
+}
+/* Responsive columns */
+@media screen and (max-width: 600px) {
+	.column {
+		width: 100%;
+		display: block;
+		margin-bottom: 20px;
+	}
+}
+/* Style the counter cards */
+.card {
+	box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2);
+	padding: 16px;
+	text-align: center;
+	background-color: #f1f1f1;
+}
+
+.select {
+	width: 100%;
+	min-width: 15ch;
+	max-width: 30ch;
+	border: 1px solid var(- -select-border);
+	border-radius: 0.25em;
+	padding: 0.25em 0.5em;
+	font-size: 1.25rem;
+	cursor: pointer;
+	line-height: 1.1;
+	background-color: #fff;
+	background-image: linear-gradient(to top, #f9f9f9, #fff 33%);
+}
+
+div.stockQuoteTable {
+	margin: auto;
+	width: 1020px;
+	padding: 10px;
+}
+</style>
+<script th:inline="javascript">
+	setTimeout(function() {
+		location.reload();
+	}, 60 * 1000);
+	function getAveragePriceForStock(arg) {
+		console.log(' ## called getAveragePriceForStock -> arg -> ' + arg);
+		$.ajax({
+			type : "GET",
+			cache : false,
+			contentType : "application/json; charset=utf-8",
+			url : "stock/getStockAvgPrice/" + arg,
+			success : function(response) {
+				$(".stock-quote-average-price-div").text(
+						'Average Price for stock ' + arg + ' is : ' + response)
+						.fadeIn();
+				$(".stock-quote-average-price-div").fadeOut(6000);
+				console.log(response);
+			},
+			error : function(jqXHR, exception) {
+				console.log(exception);
+			}
+		});
+	}
+	function purgeStock(arg) {
+		console.log(' ## called purgeStock -> arg -> ' + arg);
+		$.ajax({
+			type : "DELETE",
+			cache : false,
+			contentType : "application/json; charset=utf-8",
+			url : "stock/addStockQuotes/" + arg,
+			success : function(response) {
+				location.reload(true);
+			},
+			error : function(jqXHR, exception) {
+				location.reload(true);
+			}
+		});
+	}
+	function getStockQuotesList() {
+		var selectedIndex = $("#selectquote option:selected").val();
+		console.log(selectedIndex);
+		$.ajax({
+			type : "GET",
+			cache : false,
+			contentType : "application/json; charset=utf-8",
+			url : "stock/addStockQuotes/" + selectedIndex,
+			success : function(response) {
+				location.reload(true);
+			},
+			error : function(jqXHR, exception) {
+				location.reload(true);
+			}
+		});
+	}
+</script>
+</head>
+<body>
+	<div th:replace="/navbar :: header"></div>
+	<div class="container">
+		<br> <br>
+		<div class="jumbotron">
+			<h2>Stock Activity</h2>
+			<select class="form-control" name="selectquote" id="selectquote"
+				th:onchange="'getStockQuotesList(this)'">
+				<option value="0">Select Stock</option>
+				<option th:each="stockquote : ${tasks}" th:value="${stockquote}"
+					th:text="${stockquote}"></option>
+			</select>
+		</div>
+		<div
+			style="color: black; font-weight: bold; margin: 0px 0px 10px; border: 1px outset red; background-color: lightblue; text-align: center; display: none;"
+			class="stock-quote-average-price-div"></div>
+		<br>
+	</div>
+
+	<div class="container">
+		<table class="table table-responsive" id="quote_table">
+			<tr style="font-weight: bold;">
+				<td>StockName</td>
+				<td>Name</td>
+				<td>Price</td>
+				<td>Change</td>
+				<td>Currency</td>
+				<td>BID</td>
+				<td>PriceHunt</td>
+				<td></td>
+				<td></td>
+			</tr>
+			<tr th:each="stockQuoteRecord : ${stockQuotesList}">
+				<td class="align-middle" style="text-align: left"
+					th:text="${stockQuoteRecord.stockName}" />
+				<td class="align-middle" style="text-align: left"
+					th:text="${stockQuoteRecord.name}" />
+				<td class="align-middle" style="text-align: left"
+					th:text="${stockQuoteRecord.price}" />
+				<td class="align-middle" style="text-align: left"
+					th:text="${stockQuoteRecord.change}" />
+				<td class="align-middle" style="text-align: left"
+					th:text="${stockQuoteRecord.currency}" />
+				<td class="align-middle" style="text-align: left"
+					th:text="${stockQuoteRecord.bid}" />
+				<td class="align-middle" style="text-align: left"
+					th:text="${stockQuoteRecord.priceHint}" />
+				<td class="align-middle" style="text-align: center">
+					<button type="button" id="purge" class="btn btn-danger"
+						th:onclick="purgeStock([[${stockQuoteRecord.stockName}]])">Purge</button>
+				</td>
+				<td style="text-align: center">
+					<button type="button" id="avgPrice" class="btn btn-info"
+						th:onclick="getAveragePriceForStock([[${stockQuoteRecord.stockName}]])">Avg
+						Price</button>
+				</td>
+			</tr>
+		</table>
+	</div>
+</body>
+</html>
